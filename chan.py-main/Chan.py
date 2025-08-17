@@ -156,7 +156,9 @@ class CChan:
         valid_lv_list = []
         for lv in self.lv_list:
             try:
-                lv_klu_iter.append(self.get_load_stock_iter(stockapi_cls, lv))
+                # 先将数据全部拉取完，避免数据源在多次请求时发生相互影响
+                data_list = list(self.get_load_stock_iter(stockapi_cls, lv))
+                lv_klu_iter.append(iter(data_list))
                 valid_lv_list.append(lv)
             except CChanException as e:
                 if e.errcode == ErrCode.SRC_DATA_NOT_FOUND and self.conf.auto_skip_illegal_sub_lv:
