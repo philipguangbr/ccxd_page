@@ -1,6 +1,8 @@
 from datetime import datetime
+import time
 
 import ccxt
+from ccxt.base.errors import NetworkError
 
 from Common.CEnum import AUTYPE, DATA_FIELD, KL_TYPE
 from Common.CTime import CTime
@@ -30,9 +32,22 @@ class CCXT(CCommonStockApi):
     def get_kl_data(self):
         fields = "time,open,high,low,close"
         exchange = ccxt.binance()
+        # 部分环境下访问交易所接口可能出现SSL错误，关闭校验以提升兼容性
+        exchange.session.verify = False
         timeframe = self.__convert_type()
         since_date = exchange.parse8601(f'{self.begin_date}T00:00:00')
-        data = exchange.fetch_ohlcv(self.code, timeframe, since=since_date)
+
+        # 简单的重试机制，增强网络异常时的容错
+        for retry in range(3):
+            try:
+                data = exchange.fetch_ohlcv(self.code, timeframe, since=since_date)
+                break
+            except NetworkError:
+                if retry == 2:
+                    raise
+                time.sleep(1)
+        else:
+            data = []
 
         for item in data:
             time_obj = datetime.fromtimestamp(item[0] / 1000)
