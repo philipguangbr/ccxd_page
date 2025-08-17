@@ -1,15 +1,19 @@
+import matplotlib
+matplotlib.use("TkAgg")  # or "Agg" if display is not required
+
 from Chan import CChan
 from ChanConfig import CChanConfig
 from Common.CEnum import AUTYPE, DATA_SRC, KL_TYPE
 from Plot.AnimatePlotDriver import CAnimateDriver
 from Plot.PlotDriver import CPlotDriver
 
+
 if __name__ == "__main__":
     code = "sz.000001"
     begin_time = "2018-01-01"
     end_time = None
     data_src = DATA_SRC.BAO_STOCK
-    lv_list = [KL_TYPE.K_DAY]
+    lv_list = [KL_TYPE.K_DAY, KL_TYPE.K_60M, KL_TYPE.K_5M]
 
     config = CChanConfig({
         "bi_strict": True,
@@ -78,7 +82,9 @@ if __name__ == "__main__":
             plot_config=plot_config,
             plot_para=plot_para,
         )
-        plot_driver.figure.show()
+        import matplotlib.pyplot as plt
+
+        plt.show()
         plot_driver.save2img("./test.png")
     else:
         CAnimateDriver(
